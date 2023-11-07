@@ -13,4 +13,4 @@ Lo scopo di questo laboratorio e' implementare, testandola adeguatamente, una pi
 ## Gestione della memoria
 + address sanitizer
 + valgrind
-# Link Live Share: https://prod.liveshare.vsengsaas.visualstudio.com/join?01BBE795418D4F353388808D6400B661B7A3
+# Link Live Share: 
