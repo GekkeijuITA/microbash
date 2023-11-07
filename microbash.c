@@ -336,6 +336,8 @@ int main()
 		 * The memory area must be allocated (directly or indirectly) via malloc.
 		 */
 		/*** TO BE DONE START ***/
+		pwd = getcwd();
+		// malloc NON PURO
 		/*** TO BE DONE END ***/
 		pwd = my_realloc(pwd, strlen(pwd) + prompt_suffix_len + 1);
 		strcat(pwd, prompt_suffix);
