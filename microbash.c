@@ -22,8 +22,8 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <readline/readline.h>
-#include <readline/history.h>
+//#include <readline/readline.h>
+//#include <readline/history.h>
 #include <stdint.h>
 
 void fatal(const char * const msg)
@@ -343,7 +343,20 @@ int main()
 		/*** TO BE DONE END ***/
 		pwd = my_realloc(pwd, strlen(pwd) + prompt_suffix_len + 1);
 		strcat(pwd, prompt_suffix);
-		char * const line = readline(pwd);
+		/*** SENZA LA LIBRERIA READLINE ***/
+		//char * const line = readline(pwd);
+		const int max_line_size = 512;
+		char * line = my_malloc(max_line_size);
+		printf("%s", pwd);
+		if (!fgets(line, max_line_size, stdin)) {
+			free(line);
+			line = 0;
+			putchar('\n');
+		} else {
+			size_t l = strlen(line);
+			if (l && line[--l]=='\n')
+				line[l] = 0;
+		}
 		free(pwd);
 		if (!line) break;
 		execute(line);
