@@ -1,4 +1,3 @@
-#error Please read the accompanying microbash.pdf before hacking this source code (and removing this line).
 /*
  * Micro-bash v2.2
  *
@@ -336,9 +335,11 @@ int main()
 		 * The memory area must be allocated (directly or indirectly) via malloc.
 		 */
 		/*** TO BE DONE START ***/
+
 		size_t allocSize = sizeof(char) * 1024;
 		char* buf = (char *)my_malloc(allocSize);
 		if((pwd = getcwd(buf, allocSize)) == NULL) fatal_errno("getcwd");
+		
 		/*** TO BE DONE END ***/
 		pwd = my_realloc(pwd, strlen(pwd) + prompt_suffix_len + 1);
 		strcat(pwd, prompt_suffix);
