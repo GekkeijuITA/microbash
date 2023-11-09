@@ -13,3 +13,5 @@ Lo scopo di questo laboratorio e' implementare, testandola adeguatamente, una pi
 ## Gestione della memoria
 + address sanitizer
 + valgrind
+## Comando di DEBUG
+gcc -fsanitize=address -std=gnu11 -ggdb microbash.c -o microbash
