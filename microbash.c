@@ -88,6 +88,9 @@ void free_command(command_t * const c)
 {
 	assert(c==0 || c->n_args==0 || (c->n_args > 0 && c->args[c->n_args] == 0)); /* sanity-check: if c is not null, then it is either empty (in case of parsing error) or its args are properly NULL-terminated */
 	/*** TO BE DONE START ***/
+
+
+
 	/*** TO BE DONE END ***/
 }
 
@@ -205,6 +208,11 @@ check_t check_redirections(const line_t * const l)
 	 * message and return CHECK_FAILED otherwise
 	 */
 	/*** TO BE DONE START ***/
+
+	if((l->commands->n_args = 0 && l->commands->out_pathname != 0){  
+		return CHECK_FAILED;
+	}
+
 	/*** TO BE DONE END ***/
 	return CHECK_OK;
 }
