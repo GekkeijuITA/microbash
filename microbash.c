@@ -260,6 +260,10 @@ void wait_for_children()
 	 * Similarly, if a child is killed by a signal, then you should print a message specifying its PID, signal number and signal name.
 	 */
 	/*** TO BE DONE START ***/
+	
+	// usare waitpid()
+	// probabile utilizzo di fork
+
 	/*** TO BE DONE END ***/
 }
 
@@ -282,6 +286,7 @@ void run_child(const command_t * const c, int c_stdin, int c_stdout)
 	 * (printing error messages in case of failure, obviously)
 	 */
 	/*** TO BE DONE START ***/
+
 	/*** TO BE DONE END ***/
 }
 
