@@ -209,7 +209,12 @@ check_t check_redirections(const line_t * const l)
 	 */
 	/*** TO BE DONE START ***/
 
-	if((l->commands->n_args = 0 && l->commands->out_pathname != 0){  
+	if(l->commands[0]->out_pathname != 0){
+		fatal_errno("out_pathname=0");
+		return CHECK_FAILED;
+	}
+	if(l->commands[l->n_commands-1]->in_pathname != 0){
+		fatal_errno("in_pathname=0");
 		return CHECK_FAILED;
 	}
 
@@ -228,6 +233,7 @@ check_t check_cd(const line_t * const l)
 	 * message and return CHECK_FAILED otherwise
 	 */
 	/*** TO BE DONE START ***/
+
 	/*** TO BE DONE END ***/
 	return CHECK_OK;
 }
