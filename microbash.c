@@ -210,11 +210,11 @@ check_t check_redirections(const line_t * const l)
 	/*** TO BE DONE START ***/
 
 	if(l->commands[0]->out_pathname != 0){
-		fatal_errno("out_pathname=0");
+		fatal_errno("out_pathname = 0");
 		return CHECK_FAILED;
 	}
 	if(l->commands[l->n_commands-1]->in_pathname != 0){
-		fatal_errno("in_pathname=0");
+		fatal_errno("in_pathname = 0");
 		return CHECK_FAILED;
 	}
 
@@ -233,7 +233,22 @@ check_t check_cd(const line_t * const l)
 	 * message and return CHECK_FAILED otherwise
 	 */
 	/*** TO BE DONE START ***/
-
+	if(strcmp(CD, l->commands[0]->args[0]) != 0){
+		fatal_errno("cd != 0");
+		return CHECK_FAILED;
+	}
+	if(l->n_commands != 1){
+		fatal_errno("n_commands != 1");
+		return CHECK_FAILED;
+	}
+	if(check_redirections(l) != 0){
+		fatal_errno("check_redirections != 0");
+		return CHECK_FAILED;
+	}
+	if(l->commands[0]->n_args != 2){
+		fatal_errno("n_args != 2");
+		return CHECK_FAILED;
+	}
 	/*** TO BE DONE END ***/
 	return CHECK_OK;
 }
