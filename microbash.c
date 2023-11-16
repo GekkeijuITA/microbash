@@ -296,6 +296,8 @@ void change_current_directory(char *newdir)
 	 * (printing an appropriate error message if the syscall fails)
 	 */
 	/*** TO BE DONE START ***/
+	// Memory leak probabilmente causati da qualche funzione non ancora scritta
+	if(chdir(newdir) == -1) fatal_errno("Errore nel cambio della cartella");
 	/*** TO BE DONE END ***/
 }
 
