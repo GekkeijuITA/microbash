@@ -327,6 +327,7 @@ void execute_line(const line_t * const l)
 			/* Open c->in_pathname and assign the file-descriptor to curr_stdin
 			 * (handling error cases) */
 			/*** TO BE DONE START ***/
+			if((curr_stdin = open(c->in_pathname, O_RDONLY))==-1) fatal_errno("Errore nell'assegnazione del file-descriptor (in_pathname)");
 			/*** TO BE DONE END ***/
 		}
 		if (c->out_pathname) {
