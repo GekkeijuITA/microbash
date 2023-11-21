@@ -336,6 +336,7 @@ void execute_line(const line_t * const l)
 			/* Open c->out_pathname and assign the file-descriptor to curr_stdout
 			 * (handling error cases) */
 			/*** TO BE DONE START ***/
+			if((curr_stdout = open(c->out_pathname, O_RDONLY))==-1) fatal_errno("Errore nell'assegnazione del file-descriptor (out_pathname)");
 			/*** TO BE DONE END ***/
 		} else if (a != (l->n_commands - 1)) { /* unless we're processing the last command, we need to connect the current command and the next one with a pipe */
 			int fds[2];
