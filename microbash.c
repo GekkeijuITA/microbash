@@ -88,9 +88,7 @@ void free_command(command_t * const c)
 {
 	assert(c==0 || c->n_args==0 || (c->n_args > 0 && c->args[c->n_args] == 0)); /* sanity-check: if c is not null, then it is either empty (in case of parsing error) or its args are properly NULL-terminated */
 	/*** TO BE DONE START ***/
-
 	free(c);
-
 	/*** TO BE DONE END ***/
 }
 
@@ -237,8 +235,7 @@ check_t check_cd(const line_t * const l)
 	 */
 	/*** TO BE DONE START ***/
 	if(strcmp(CD, l->commands[0]->args[0]) != 0){
-		fatal_errno("cd != 0");
-		return CHECK_FAILED;
+		return CHECK_OK;
 	}
 	if(l->n_commands != 1){
 		fatal_errno("n_commands != 1");
@@ -263,10 +260,25 @@ void wait_for_children()
 	 * Similarly, if a child is killed by a signal, then you should print a message specifying its PID, signal number and signal name.
 	 */
 	/*** TO BE DONE START ***/
-	
-	// usare waitpid()
-	// probabile utilizzo di fork
+	pid_t process = fork();
+	if(process != 0){
+		int status;
+		pid_t child_pid = waitpid(process, &status, 0);
 
+		while(process >0 ){
+			if(WIFEXITED(status) != 0){
+				printf("The child process (PID: %d)exit with code %d\n", child_pid, WEXITSTATUS(status));
+			}
+			else if (WIFSIGNALED(status)) {
+				// Child terminated by a signal
+				int signal_number = WTERMSIG(status);
+				const char *signal_name = strsignal(signal_number);
+				printf("The child process %d is end with number %s and signal %d \n", child_pid, signal_name, signal_number);
+			}	
+			fflush(stdout);
+			child_pid = waitpid(process, &status, 0);
+		}
+	}
 	/*** TO BE DONE END ***/
 }
 
@@ -276,6 +288,9 @@ void redirect(int from_fd, int to_fd)
 	 * That is, use dup/dup2/close to make to_fd equivalent to the original from_fd, and then close from_fd
 	 */
 	/*** TO BE DONE START ***/
+	//if(from_fd!=NO_REDIR)		
+
+
 	/*** TO BE DONE END ***/
 }
 
@@ -300,7 +315,7 @@ void change_current_directory(char *newdir)
 	 */
 	/*** TO BE DONE START ***/
 	// Memory leak probabilmente causati da qualche funzione non ancora scritta
-	if(chdir(newdir) == -1) fprintf(stderr, "Errore nel cambio della cartella");
+	if(chdir(newdir) == -1) fprintf(stderr, "Errore nel cambio della cartella\n");
 	/*** TO BE DONE END ***/
 }
 
