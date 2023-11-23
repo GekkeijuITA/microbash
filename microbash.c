@@ -262,19 +262,23 @@ check_t check_cd(const line_t *const l)
 	{
 		return CHECK_OK;
 	}
+
 	if (l->n_commands != 1)
 	{
-		fatal_errno("n_commands != 1");
+		//fatal_errno("n_commands != 1"); 
+		fprintf(stderr, "cd command must be the only command of the line\n");
 		return CHECK_FAILED;
 	}
 	if (check_redirections(l) != 0)
 	{
-		fatal_errno("check_redirections != 0");
+		//fatal_errno("check_redirections != 0"); 
+		fprintf(stderr, "Cannot have I/O redirections\n");
 		return CHECK_FAILED;
 	}
 	if (l->commands[0]->n_args != 2)
 	{
-		fatal_errno("n_args != 2");
+		//fatal_errno("n_args != 2");
+		fprintf(stderr, "cd command must have only one argument\n");
 		return CHECK_FAILED;
 	}
 	/*** TO BE DONE END ***/
@@ -320,7 +324,39 @@ void redirect(int from_fd, int to_fd)
 	 * That is, use dup/dup2/close to make to_fd equivalent to the original from_fd, and then close from_fd
 	 */
 	/*** TO BE DONE START ***/
-	// if(from_fd!=NO_REDIR)
+	if(from_fd!=NO_REDIR)
+	{
+		if(dup2(from_fd, to_fd) == -1)
+		{
+			switch(errno){
+				case EBUSY:
+					fprintf(stderr, "The file descriptor %d (to_fd) already exists\n", to_fd);
+					break;
+				case EBADF:
+					fprintf(stderr, "The file descriptor %d (to_fd) is not valid\n", to_fd);
+					break;
+				default:
+					fprintf(stderr, "Uncaught error in dup2\n");
+					break;
+			}
+		}
+		
+		if(close(from_fd) == -1)
+		{
+			switch (errno)
+			{
+			case EBADF:
+				fprintf(stderr, "The file descriptor is not valid\n");
+				break;
+			case EIO:
+				fprintf(stderr, "An I/O error occurred\n");
+				break;
+			default:
+				fprintf(stderr, "Uncaught error in close\n");
+				break;
+			}
+		}
+	}
 
 	/*** TO BE DONE END ***/
 }
@@ -335,6 +371,32 @@ void run_child(const command_t *const c, int c_stdin, int c_stdout)
 	 * (printing error messages in case of failure, obviously)
 	 */
 	/*** TO BE DONE START ***/
+	pid_t child = fork();
+
+	if(child < 0)
+	{
+		switch (errno)
+		{
+		case ENOMEM:
+			fprintf(stderr, "Cannot allocate memory for the child process\n");
+			break;
+		case ENOSYS:
+			fprintf(stderr, "fork() is not supported on this platform\n");
+			break;
+		case EAGAIN:
+			fprintf(stderr, "Cannot allocate sufficient memory to copy the parent's page tables and allocate a task structure for the child\n");
+			break;
+		default:
+			fprintf(stderr, "Uncaught error in fork\n");
+			break;
+		}
+	}
+	else
+	{
+		c_stdin = STDIN_FILENO;
+		c_stdout = STDOUT_FILENO;
+		execvp(c->args[0], c->args); // Prende il comando e gli argomenti
+	}
 
 	/*** TO BE DONE END ***/
 }
@@ -413,6 +475,23 @@ void execute_line(const line_t *const l)
 			int fds[2];
 			/* Create a pipe in fds, and set FD_CLOEXEC in both file-descriptor flags */
 			/*** TO BE DONE START ***/
+			if(pipe(fds) != 0)
+			{
+				switch (errno)
+				{
+				case EMFILE:
+					fprintf(stderr, "Too many file descriptors are in use by the process\n");
+					break;
+				case EFAULT:
+					fprintf(stderr, "The fds argument is not valid\n");
+					break;
+				}
+			}
+			else
+			{
+				fcntl(fds[0], F_SETFD, FD_CLOEXEC);
+				fcntl(fds[1], F_SETFD, FD_CLOEXEC);
+			}
 			/*** TO BE DONE END ***/
 			curr_stdout = fds[1];
 			next_stdin = fds[0];
