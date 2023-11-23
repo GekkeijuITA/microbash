@@ -321,33 +321,25 @@ void wait_for_children()
 	 * Similarly, if a child is killed by a signal, then you should print a message specifying its PID, signal number and signal name.
 	 */
 	/*** TO BE DONE START ***/
-	/*
-	pid_t process = fork();
-	if (process != 0)
-	{
-		int status;
-		pid_t child_pid = waitpid(process, &status, -1);
+	int status;
+	pid_t child_pid = waitpid(-1, &status, -1);
 
-		while (child_pid > 0)
+	if(child_pid >0){
+
+		if (WIFEXITED(status))
 		{
-			if (WIFEXITED(status) != 0)
-			{
-				printf("The child process (PID: %d)exit with code %d\n", child_pid, WEXITSTATUS(status));
-			}
-			else if (WIFSIGNALED(status))
-			{
-				// Child terminated by a signal
-				int signal_number = WTERMSIG(status);
-				const char *signal_name = strsignal(signal_number);
-				printf("The child process %d is end with number %s and signal %d \n", child_pid, signal_name, signal_number);
-			}
-			fflush(stdout);
-			child_pid = waitpid(process, &status, 0);
+			printf("The child process (PID: %d)exit with code %d\n", child_pid, WEXITSTATUS(status));
 		}
+		else if (WIFSIGNALED(status))
+		{
+			// Child terminated by a signal
+			int signal_number = WTERMSIG(status);
+			const char *signal_name = strsignal(signal_number);
+			printf("The child process %d is end with number %s and signal %d \n", child_pid, signal_name, signal_number);
+		}
+		fflush(stdout);
+		wait_for_children();
 	}
-	*/
-	// Usare il wait() slide del 12/10/2023
-
 	/*** TO BE DONE END ***/
 }
 
