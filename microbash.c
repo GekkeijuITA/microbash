@@ -292,32 +292,7 @@ check_t check_cd(const line_t *const l)
 			}
 		}
 	}
-
-	/*
-	if (strcmp(CD, l->commands[0]->args[0]) != 0)
-	{
-		return CHECK_OK;
-	}
-
-	if (l->n_commands != 1)
-	{
-		// fatal_errno("n_commands != 1");
-		fprintf(stderr, "cd command must be the only command of the line\n");
-		return CHECK_FAILED;
-	}
-	if (check_redirections(l) != 0)
-	{
-		// fatal_errno("check_redirections != 0");
-		fprintf(stderr, "Cannot have I/O redirections\n");
-		return CHECK_FAILED;
-	}
-	if (l->commands[0]->n_args != 2)
-	{
-		// fatal_errno("n_args != 2");
-		fprintf(stderr, "cd command must have only one argument\n");
-		return CHECK_FAILED;
-	}
-	*/
+	
 	/*** TO BE DONE END ***/
 	return CHECK_OK;
 }
@@ -333,9 +308,9 @@ void wait_for_children()
 	if (process != 0)
 	{
 		int status;
-		pid_t child_pid = waitpid(process, &status, 0);
+		pid_t child_pid = waitpid(process, &status, -1);
 
-		while (process > 0)
+		while (child_pid > 0)
 		{
 			if (WIFEXITED(status) != 0)
 			{
@@ -349,7 +324,7 @@ void wait_for_children()
 				printf("The child process %d is end with number %s and signal %d \n", child_pid, signal_name, signal_number);
 			}
 			fflush(stdout);
-			child_pid = waitpid(process, &status, 0);
+			child_pid = waitpid(-1, &status, 0);
 		}
 	}
 	/*** TO BE DONE END ***/
@@ -411,7 +386,7 @@ void run_child(const command_t *const c, int c_stdin, int c_stdout)
 	/*** TO BE DONE START ***/
 	pid_t child = fork();
 
-	if (child < 0)
+	if (child == -1)
 	{
 		switch (errno)
 		{
@@ -428,12 +403,19 @@ void run_child(const command_t *const c, int c_stdin, int c_stdout)
 			fprintf(stderr, "Uncaught error in fork\n");
 			break;
 		}
+
+		return;
 	}
-	else
+
+	c_stdin = STDIN_FILENO;
+	c_stdout = STDOUT_FILENO;
+
+	if(fork() == 0) 
 	{
-		c_stdin = STDIN_FILENO;
-		c_stdout = STDOUT_FILENO;
-		execvp(c->args[0], c->args); // Prende il comando e gli argomenti
+		if(execvp(c->args[0], c->args) == -1)
+		{
+			fprintf(stderr, "Process terminated incorrectly\n");
+		}
 	}
 
 	/*** TO BE DONE END ***/
@@ -445,9 +427,6 @@ void change_current_directory(char *newdir)
 	 * (printing an appropriate error message if the syscall fails)
 	 */
 	/*** TO BE DONE START ***/
-	/*
-		Caso di memory leak, se io eseguo il comando cd foo, poi faccio un invio e scrivo solo cd parte il memory leak
-	*/
 	// Check if in newdir there is a /
 
 	if (chdir(newdir) == -1)
@@ -496,7 +475,7 @@ void execute_line(const line_t *const l)
 			/* Open c->in_pathname and assign the file-descriptor to curr_stdin
 			 * (handling error cases) */
 			/*** TO BE DONE START ***/
-			if ((curr_stdin = open(c->in_pathname, O_RDONLY)) == -1)
+			if ((curr_stdin = open(c->in_pathname, O_RDWR)) == -1)
 				fatal_errno("Errore nell'assegnazione del file-descriptor (in_pathname)");
 			/*** TO BE DONE END ***/
 		}
@@ -506,7 +485,7 @@ void execute_line(const line_t *const l)
 			/* Open c->out_pathname and assign the file-descriptor to curr_stdout
 			 * (handling error cases) */
 			/*** TO BE DONE START ***/
-			if ((curr_stdout = open(c->out_pathname, O_RDONLY)) == -1)
+			if ((curr_stdout = open(c->out_pathname, O_RDWR)) == -1)
 				fatal_errno("Errore nell'assegnazione del file-descriptor (out_pathname)");
 			/*** TO BE DONE END ***/
 		}
@@ -529,8 +508,8 @@ void execute_line(const line_t *const l)
 			}
 			else
 			{
-				fcntl(fds[0], F_SETFD, FD_CLOEXEC);
-				fcntl(fds[1], F_SETFD, FD_CLOEXEC);
+				fcntl(fds[0], FD_CLOEXEC);
+				fcntl(fds[1], FD_CLOEXEC);
 			}
 			/*** TO BE DONE END ***/
 			curr_stdout = fds[1];
