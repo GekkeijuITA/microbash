@@ -94,6 +94,16 @@ void free_command(command_t *const c)
 {
 	assert(c == 0 || c->n_args == 0 || (c->n_args > 0 && c->args[c->n_args] == 0)); /* sanity-check: if c is not null, then it is either empty (in case of parsing error) or its args are properly NULL-terminated */
 	/*** TO BE DONE START ***/
+
+	for (int i = 0; i < c->n_args; i++)
+	{
+		free(c->args[i]);
+	}
+	
+	c->n_args=0;
+	free(c ->args);
+	free(c->in_pathname);
+	free(c->out_pathname);
 	free(c);
 	/*** TO BE DONE END ***/
 }
@@ -102,6 +112,13 @@ void free_line(line_t *const l)
 {
 	assert(l == 0 || l->n_commands >= 0); /* sanity-check */
 	/*** TO BE DONE START ***/
+	for (int i = 0; i < l->n_commands; i++)
+	{
+		free_command(l->commands[i]);
+		l->commands[i] = NULL;
+	}
+	l->n_commands=0;
+	free(l->commands);
 	free(l);
 	/*** TO BE DONE END ***/
 }
@@ -304,6 +321,7 @@ void wait_for_children()
 	 * Similarly, if a child is killed by a signal, then you should print a message specifying its PID, signal number and signal name.
 	 */
 	/*** TO BE DONE START ***/
+	/*
 	pid_t process = fork();
 	if (process != 0)
 	{
@@ -324,9 +342,12 @@ void wait_for_children()
 				printf("The child process %d is end with number %s and signal %d \n", child_pid, signal_name, signal_number);
 			}
 			fflush(stdout);
-			child_pid = waitpid(-1, &status, 0);
+			child_pid = waitpid(process, &status, 0);
 		}
 	}
+	*/
+	// Usare il wait() slide del 12/10/2023
+
 	/*** TO BE DONE END ***/
 }
 
