@@ -231,16 +231,26 @@ check_t check_redirections(const line_t *const l)
 	 * message and return CHECK_FAILED otherwise
 	 */
 	/*** TO BE DONE START ***/
+	for (int i = 0; i < l->n_commands; i++)
+	{
+		command_t *c = l->commands[i];
+		if(i == 0 && c->in_pathname != 0)
+		{
+			fprintf(stderr, "Error: Input redirection not allowed for the first command.\n");
+			return CHECK_FAILED;
+		}
 
-	if (l->commands[0]->out_pathname != 0)
-	{
-		fatal_errno("out_pathname = 0");
-		return CHECK_FAILED;
-	}
-	if (l->commands[l->n_commands - 1]->in_pathname != 0)
-	{
-		fatal_errno("in_pathname = 0");
-		return CHECK_FAILED;
+		if(i == (l->n_commands-1) && c->out_pathname != 0)
+		{
+			fprintf(stderr, "Error: Output redirection not allowed for the last command.\n");
+			return CHECK_FAILED;
+		}
+
+		if(i != 0 && i != (l->n_commands-1) && (c->in_pathname != 0 || c->out_pathname != 0))
+		{
+			fprintf(stderr, "Error: Input and output redirections not allowed for the middle commands.\n");
+			return CHECK_FAILED;
+		}
 	}
 
 	/*** TO BE DONE END ***/
@@ -258,6 +268,32 @@ check_t check_cd(const line_t *const l)
 	 * message and return CHECK_FAILED otherwise
 	 */
 	/*** TO BE DONE START ***/
+	for (int i = 0; i < l->n_commands; i++)
+	{
+		if (strcmp(CD, l->commands[i]->args[0]) == 0)
+		{
+			if (l->n_commands != 1)
+			{
+				// fatal_errno("n_commands != 1");
+				fprintf(stderr, "cd command must be the only command of the line\n");
+				return CHECK_FAILED;
+			}
+			if (check_redirections(l) != 0)
+			{
+				// fatal_errno("check_redirections != 0");
+				fprintf(stderr, "Cannot have I/O redirections\n");
+				return CHECK_FAILED;
+			}
+			if (l->commands[i]->n_args != 2)
+			{
+				// fatal_errno("n_args != 2");
+				fprintf(stderr, "cd command must have only one argument\n");
+				return CHECK_FAILED;
+			}
+		}
+	}
+
+	/*
 	if (strcmp(CD, l->commands[0]->args[0]) != 0)
 	{
 		return CHECK_OK;
@@ -265,22 +301,23 @@ check_t check_cd(const line_t *const l)
 
 	if (l->n_commands != 1)
 	{
-		//fatal_errno("n_commands != 1"); 
+		// fatal_errno("n_commands != 1");
 		fprintf(stderr, "cd command must be the only command of the line\n");
 		return CHECK_FAILED;
 	}
 	if (check_redirections(l) != 0)
 	{
-		//fatal_errno("check_redirections != 0"); 
+		// fatal_errno("check_redirections != 0");
 		fprintf(stderr, "Cannot have I/O redirections\n");
 		return CHECK_FAILED;
 	}
 	if (l->commands[0]->n_args != 2)
 	{
-		//fatal_errno("n_args != 2");
+		// fatal_errno("n_args != 2");
 		fprintf(stderr, "cd command must have only one argument\n");
 		return CHECK_FAILED;
 	}
+	*/
 	/*** TO BE DONE END ***/
 	return CHECK_OK;
 }
@@ -324,24 +361,25 @@ void redirect(int from_fd, int to_fd)
 	 * That is, use dup/dup2/close to make to_fd equivalent to the original from_fd, and then close from_fd
 	 */
 	/*** TO BE DONE START ***/
-	if(from_fd!=NO_REDIR)
+	if (from_fd != NO_REDIR)
 	{
-		if(dup2(from_fd, to_fd) == -1)
+		if (dup2(from_fd, to_fd) == -1)
 		{
-			switch(errno){
-				case EBUSY:
-					fprintf(stderr, "The file descriptor %d (to_fd) already exists\n", to_fd);
-					break;
-				case EBADF:
-					fprintf(stderr, "The file descriptor %d (to_fd) is not valid\n", to_fd);
-					break;
-				default:
-					fprintf(stderr, "Uncaught error in dup2\n");
-					break;
+			switch (errno)
+			{
+			case EBUSY:
+				fprintf(stderr, "The file descriptor %d (to_fd) already exists\n", to_fd);
+				break;
+			case EBADF:
+				fprintf(stderr, "The file descriptor %d (to_fd) is not valid\n", to_fd);
+				break;
+			default:
+				fprintf(stderr, "Uncaught error in dup2\n");
+				break;
 			}
 		}
-		
-		if(close(from_fd) == -1)
+
+		if (close(from_fd) == -1)
 		{
 			switch (errno)
 			{
@@ -373,7 +411,7 @@ void run_child(const command_t *const c, int c_stdin, int c_stdout)
 	/*** TO BE DONE START ***/
 	pid_t child = fork();
 
-	if(child < 0)
+	if (child < 0)
 	{
 		switch (errno)
 		{
@@ -410,6 +448,8 @@ void change_current_directory(char *newdir)
 	/*
 		Caso di memory leak, se io eseguo il comando cd foo, poi faccio un invio e scrivo solo cd parte il memory leak
 	*/
+	// Check if in newdir there is a /
+
 	if (chdir(newdir) == -1)
 	{
 		switch (errno)
@@ -424,7 +464,7 @@ void change_current_directory(char *newdir)
 			fprintf(stderr, "Uncaught error in chdir\n");
 			break;
 		}
-		
+		free(newdir);
 	}
 	/*** TO BE DONE END ***/
 }
@@ -475,7 +515,7 @@ void execute_line(const line_t *const l)
 			int fds[2];
 			/* Create a pipe in fds, and set FD_CLOEXEC in both file-descriptor flags */
 			/*** TO BE DONE START ***/
-			if(pipe(fds) != 0)
+			if (pipe(fds) != 0)
 			{
 				switch (errno)
 				{
@@ -532,8 +572,10 @@ int main()
 		size_t allocSize = sizeof(char) * 1024;
 		char *buf = (char *)my_malloc(allocSize);
 		if ((pwd = getcwd(buf, allocSize)) == NULL)
+		{
+			free(buf);
 			fatal_errno("getcwd");
-
+		}
 		/*** TO BE DONE END ***/
 		pwd = my_realloc(pwd, strlen(pwd) + prompt_suffix_len + 1);
 		strcat(pwd, prompt_suffix);
