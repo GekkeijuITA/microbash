@@ -100,7 +100,7 @@ void free_command(command_t *const c)
 	{
 		free(c->args[i]);
 	}
-	
+
 	c->n_args=0;
 	free(c ->args);
 	free(c->in_pathname);
@@ -255,19 +255,19 @@ check_t check_redirections(const line_t *const l)
 	for (int i = 0; i < l->n_commands; i++)
 	{
 		command_t *c = l->commands[i];
-		if(i == 0 && c->in_pathname != 0)
+		if (i == 0 && c->in_pathname != 0)
 		{
 			fprintf(stderr, "Error: Input redirection not allowed for the first command.\n");
 			return CHECK_FAILED;
 		}
 
-		if(i == (l->n_commands-1) && c->out_pathname != 0)
+		if (i == (l->n_commands - 1) && c->out_pathname != 0)
 		{
 			fprintf(stderr, "Error: Output redirection not allowed for the last command.\n");
 			return CHECK_FAILED;
 		}
 
-		if(i != 0 && i != (l->n_commands-1) && (c->in_pathname != 0 || c->out_pathname != 0))
+		if (i != 0 && i != (l->n_commands - 1) && (c->in_pathname != 0 || c->out_pathname != 0))
 		{
 			fprintf(stderr, "Error: Input and output redirections not allowed for the middle commands.\n");
 			return CHECK_FAILED;
@@ -313,7 +313,7 @@ check_t check_cd(const line_t *const l)
 			}
 		}
 	}
-	
+
 	/*** TO BE DONE END ***/
 	return CHECK_OK;
 }
@@ -326,9 +326,10 @@ void wait_for_children()
 	 */
 	/*** TO BE DONE START ***/
 	int status;
-	pid_t child_pid = waitpid(-1, &status, -1);
+	pid_t child_pid;
 
-	if(child_pid >0){
+	while (child_pid = waitpid(-1, &status, 0) > 0)
+	{
 
 		if (WIFEXITED(status))
 		{
@@ -342,7 +343,6 @@ void wait_for_children()
 			printf("The child process %d is end with number %s and signal %d \n", child_pid, signal_name, signal_number);
 		}
 		fflush(stdout);
-		wait_for_children();
 	}
 	/*** TO BE DONE END ***/
 }
@@ -366,7 +366,7 @@ void redirect(int from_fd, int to_fd)
 				fprintf(stderr, "The file descriptor %d (to_fd) is not valid\n", to_fd);
 				break;
 			default:
-				fprintf(stderr, "Uncaught error in dup2\n");
+				fprintf(stderr, "Uncaught error in dup2, error type: %s\n", strerror(errno));
 				break;
 			}
 		}
@@ -382,7 +382,7 @@ void redirect(int from_fd, int to_fd)
 				fprintf(stderr, "An I/O error occurred\n");
 				break;
 			default:
-				fprintf(stderr, "Uncaught error in close\n");
+				fprintf(stderr, "Uncaught error in close, error type: %s\n", strerror(errno));
 				break;
 			}
 		}
@@ -417,7 +417,7 @@ void run_child(const command_t *const c, int c_stdin, int c_stdout)
 			fprintf(stderr, "Cannot allocate sufficient memory to copy the parent's page tables and allocate a task structure for the child\n");
 			break;
 		default:
-			fprintf(stderr, "Uncaught error in fork\n");
+			fprintf(stderr, "Uncaught error in fork, error type: %s\n", strerror(errno));
 			break;
 		}
 
@@ -427,11 +427,11 @@ void run_child(const command_t *const c, int c_stdin, int c_stdout)
 	c_stdin = STDIN_FILENO;
 	c_stdout = STDOUT_FILENO;
 
-	if(fork() == 0) 
+	if (child == 0)
 	{
-		if(execvp(c->args[0], c->args) == -1)
+		if (execvp(c->args[0], c->args) == -1)
 		{
-			fprintf(stderr, "Process terminated incorrectly\n");
+			fprintf(stderr, "Process terminated incorrectly, what went wrong: %s\n", strerror(errno));
 		}
 	}
 
@@ -457,7 +457,7 @@ void change_current_directory(char *newdir)
 			fprintf(stderr, "Permission denied\n");
 			break;
 		default:
-			fprintf(stderr, "Uncaught error in chdir\n");
+			fprintf(stderr, "Uncaught error in chdir, error type: %s\n", strerror(errno));
 			break;
 		}
 		free(newdir);
@@ -492,8 +492,11 @@ void execute_line(const line_t *const l)
 			/* Open c->in_pathname and assign the file-descriptor to curr_stdin
 			 * (handling error cases) */
 			/*** TO BE DONE START ***/
-			if ((curr_stdin = open(c->in_pathname, O_RDWR)) == -1)
-				fatal_errno("Errore nell'assegnazione del file-descriptor (in_pathname)");
+			if ((curr_stdin = open(c->in_pathname, O_RDONLY)) == -1)
+			{
+				fprintf(stderr, "Cannot open file %s\n", c->in_pathname);
+				fatal_errno("Error while assigning the file-descriptor (in_pathname)");
+			}
 			/*** TO BE DONE END ***/
 		}
 		if (c->out_pathname)
@@ -502,8 +505,11 @@ void execute_line(const line_t *const l)
 			/* Open c->out_pathname and assign the file-descriptor to curr_stdout
 			 * (handling error cases) */
 			/*** TO BE DONE START ***/
-			if ((curr_stdout = open(c->out_pathname, O_RDWR)) == -1)
-				fatal_errno("Errore nell'assegnazione del file-descriptor (out_pathname)");
+			if ((curr_stdout = open(c->out_pathname, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0666)) == -1)
+			{
+				fprintf(stderr, "Cannot open file %s\n", c->out_pathname);
+				fatal_errno("Error while assigning the file-descriptor (out_pathname)");
+			}
 			/*** TO BE DONE END ***/
 		}
 		else if (a != (l->n_commands - 1))
@@ -520,6 +526,9 @@ void execute_line(const line_t *const l)
 					break;
 				case EFAULT:
 					fprintf(stderr, "The fds argument is not valid\n");
+					break;
+				default:
+					fprintf(stderr, "Uncaught error in pipe, error type: %s\n", strerror(errno));
 					break;
 				}
 			}
