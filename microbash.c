@@ -95,17 +95,16 @@ void free_command(command_t *const c)
 	assert(c == 0 || c->n_args == 0 || (c->n_args > 0 && c->args[c->n_args] == 0)); /* sanity-check: if c is not null, then it is either empty (in case of parsing error) or its args are properly NULL-terminated */
 	/*** TO BE DONE START ***/
 
-	/*
 	for (int i = 0; i < c->n_args; i++)
 	{
 		free(c->args[i]);
 	}
 
-	c->n_args=0;
-	free(c ->args);
+	c->n_args = 0;
+	free(c->args);
 	free(c->in_pathname);
 	free(c->out_pathname);
-	*/
+
 	free(c);
 	/*** TO BE DONE END ***/
 }
@@ -114,15 +113,15 @@ void free_line(line_t *const l)
 {
 	assert(l == 0 || l->n_commands >= 0); /* sanity-check */
 	/*** TO BE DONE START ***/
-	/*
+
 	for (int i = 0; i < l->n_commands; i++)
 	{
 		free_command(l->commands[i]);
 		l->commands[i] = NULL;
 	}
-	l->n_commands=0;
+	l->n_commands = 0;
 	free(l->commands);
-	*/
+
 	free(l);
 	/*** TO BE DONE END ***/
 }
@@ -254,22 +253,15 @@ check_t check_redirections(const line_t *const l)
 	/*** TO BE DONE START ***/
 	for (int i = 0; i < l->n_commands; i++)
 	{
-		command_t *c = l->commands[i];
-		if (i == 0 && c->in_pathname != 0)
+		if (i != 0 && l->commands[i]->in_pathname != 0)
 		{
-			fprintf(stderr, "Error: Input redirection not allowed for the first command.\n");
+			fprintf(stderr, "Only the first command of a line can have input-redirection\n");
 			return CHECK_FAILED;
 		}
-
-		if (i == (l->n_commands - 1) && c->out_pathname != 0)
+		if (i != l->n_commands - 1 && l->commands[i]->out_pathname != 0)
 		{
-			fprintf(stderr, "Error: Output redirection not allowed for the last command.\n");
-			return CHECK_FAILED;
-		}
-
-		if (i != 0 && i != (l->n_commands - 1) && (c->in_pathname != 0 || c->out_pathname != 0))
-		{
-			fprintf(stderr, "Error: Input and output redirections not allowed for the middle commands.\n");
+			// fatal_errno("out_pathname != NULL && i != l->n_commands - 1");
+			fprintf(stderr, "Only the last command of a line can have output-redirection\n");
 			return CHECK_FAILED;
 		}
 	}
@@ -420,21 +412,22 @@ void run_child(const command_t *const c, int c_stdin, int c_stdout)
 			fprintf(stderr, "Uncaught error in fork, error type: %s\n", strerror(errno));
 			break;
 		}
-
 		return;
 	}
 
-	c_stdin = STDIN_FILENO;
-	c_stdout = STDOUT_FILENO;
-
 	if (child == 0)
 	{
+		redirect(c_stdin, STDIN_FILENO);
+		redirect(c_stdout, STDOUT_FILENO);
+
 		if (execvp(c->args[0], c->args) == -1)
 		{
-			fprintf(stderr, "Process terminated incorrectly, what went wrong: %s\n", strerror(errno));
+			perror("execvp");
+			exit(EXIT_FAILURE);
 		}
-	}
 
+		exit(EXIT_SUCCESS);
+	}
 	/*** TO BE DONE END ***/
 }
 
@@ -451,7 +444,7 @@ void change_current_directory(char *newdir)
 		switch (errno)
 		{
 		case ENOENT:
-			fprintf(stderr, "Directory not found\n");
+			fprintf(stderr, "Directory %s not found\n", newdir);
 			break;
 		case EACCES:
 			fprintf(stderr, "Permission denied\n");
@@ -505,7 +498,7 @@ void execute_line(const line_t *const l)
 			/* Open c->out_pathname and assign the file-descriptor to curr_stdout
 			 * (handling error cases) */
 			/*** TO BE DONE START ***/
-			if ((curr_stdout = open(c->out_pathname, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0666)) == -1)
+			if ((curr_stdout = open(c->out_pathname, O_WRONLY | O_CREAT, 0666)) == -1)
 			{
 				fprintf(stderr, "Cannot open file %s\n", c->out_pathname);
 				fatal_errno("Error while assigning the file-descriptor (out_pathname)");
@@ -534,8 +527,8 @@ void execute_line(const line_t *const l)
 			}
 			else
 			{
-				fcntl(fds[0], FD_CLOEXEC);
-				fcntl(fds[1], FD_CLOEXEC);
+				fcntl(fds[0], F_SETFD, FD_CLOEXEC);
+				fcntl(fds[1], F_GETFD, FD_CLOEXEC);
 			}
 			/*** TO BE DONE END ***/
 			curr_stdout = fds[1];
@@ -584,7 +577,7 @@ int main()
 		/*** TO BE DONE END ***/
 		pwd = my_realloc(pwd, strlen(pwd) + prompt_suffix_len + 1);
 		strcat(pwd, prompt_suffix);
-		/*** SENZA LA LIBRERIA READLINE ***/
+		/*** WHITOUT READLINE LIBRARY***/
 		// char * const line = readline(pwd);
 		const int max_line_size = 512;
 		char *line = my_malloc(max_line_size);
