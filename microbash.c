@@ -95,6 +95,7 @@ void free_command(command_t *const c)
 	assert(c == 0 || c->n_args == 0 || (c->n_args > 0 && c->args[c->n_args] == 0)); /* sanity-check: if c is not null, then it is either empty (in case of parsing error) or its args are properly NULL-terminated */
 	/*** TO BE DONE START ***/
 
+	/*
 	for (int i = 0; i < c->n_args; i++)
 	{
 		free(c->args[i]);
@@ -104,6 +105,7 @@ void free_command(command_t *const c)
 	free(c ->args);
 	free(c->in_pathname);
 	free(c->out_pathname);
+	*/
 	free(c);
 	/*** TO BE DONE END ***/
 }
@@ -112,6 +114,7 @@ void free_line(line_t *const l)
 {
 	assert(l == 0 || l->n_commands >= 0); /* sanity-check */
 	/*** TO BE DONE START ***/
+	/*
 	for (int i = 0; i < l->n_commands; i++)
 	{
 		free_command(l->commands[i]);
@@ -119,6 +122,7 @@ void free_line(line_t *const l)
 	}
 	l->n_commands=0;
 	free(l->commands);
+	*/
 	free(l);
 	/*** TO BE DONE END ***/
 }
