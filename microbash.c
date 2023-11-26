@@ -362,22 +362,20 @@ void redirect(int from_fd, int to_fd)
 				break;
 			}
 		}
-		else if (from_fd != to_fd)
+
+		if (close(from_fd) == -1)
 		{
-			if (close(from_fd) == -1)
+			switch (errno)
 			{
-				switch (errno)
-				{
-				case EBADF:
-					fprintf(stderr, "The file descriptor is not valid\n");
-					break;
-				case EIO:
-					fprintf(stderr, "An I/O error occurred\n");
-					break;
-				default:
-					fprintf(stderr, "Uncaught error in close, error type: %s\n", strerror(errno));
-					break;
-				}
+			case EBADF:
+				fprintf(stderr, "The file descriptor is not valid\n");
+				break;
+			case EIO:
+				fprintf(stderr, "An I/O error occurred\n");
+				break;
+			default:
+				fprintf(stderr, "Uncaught error in close, error type: %s\n", strerror(errno));
+				break;
 			}
 		}
 	}
