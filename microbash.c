@@ -22,8 +22,8 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-// #include <readline/readline.h>
-// #include <readline/history.h>
+//#include <readline/readline.h>
+//#include <readline/history.h>
 #include <stdint.h>
 
 void fatal(const char *const msg)
@@ -320,7 +320,7 @@ void wait_for_children()
 	int status;
 	pid_t child_pid;
 
-	while (child_pid = waitpid(-1, &status, 0) > 0)
+	while ((child_pid = waitpid(-1, &status, 0)) > 0)
 	{
 
 		if (WIFEXITED(status))
@@ -422,7 +422,7 @@ void run_child(const command_t *const c, int c_stdin, int c_stdout)
 
 		if (execvp(c->args[0], c->args) == -1)
 		{
-			perror("execvp");
+			fprintf(stderr, "Cannot execute command %s\n", c->args[0]);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -576,7 +576,8 @@ int main()
 		pwd = my_realloc(pwd, strlen(pwd) + prompt_suffix_len + 1);
 		strcat(pwd, prompt_suffix);
 		/*** WHITOUT READLINE LIBRARY***/
-		// char * const line = readline(pwd);
+		 //char * const line = readline(pwd);
+
 		const int max_line_size = 512;
 		char *line = my_malloc(max_line_size);
 		printf("%s", pwd);
@@ -592,6 +593,7 @@ int main()
 			if (l && line[--l] == '\n')
 				line[l] = 0;
 		}
+
 		free(pwd);
 		if (!line)
 			break;
