@@ -3,12 +3,12 @@ Lo scopo di questo laboratorio e' implementare, testandola adeguatamente, una pi
 ## Pacchetti da installare
 + libreadline-dev
 ## Comandi da fare
-+ [ ] cd
-+ [ ] variabili d'ambiente
-+ [ ] standard input
-+ [ ] standard output
-+ [ ] ls
-+ [ ] cat
++ [x] cd
++ [x] variabili d'ambiente (non possiamo crearle ma possiamo leggerle)
++ [x] standard input
++ [x] standard output
++ [x] ls
++ [x] cat
 ## Gestione della memoria
 + address sanitizer
 + valgrind
