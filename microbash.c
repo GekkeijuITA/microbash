@@ -362,20 +362,22 @@ void redirect(int from_fd, int to_fd)
 				break;
 			}
 		}
-
-		if (close(from_fd) == -1)
+		else if (from_fd != to_fd)
 		{
-			switch (errno)
+			if (close(from_fd) == -1)
 			{
-			case EBADF:
-				fprintf(stderr, "The file descriptor is not valid\n");
-				break;
-			case EIO:
-				fprintf(stderr, "An I/O error occurred\n");
-				break;
-			default:
-				fprintf(stderr, "Uncaught error in close, error type: %s\n", strerror(errno));
-				break;
+				switch (errno)
+				{
+				case EBADF:
+					fprintf(stderr, "The file descriptor is not valid\n");
+					break;
+				case EIO:
+					fprintf(stderr, "An I/O error occurred\n");
+					break;
+				default:
+					fprintf(stderr, "Uncaught error in close, error type: %s\n", strerror(errno));
+					break;
+				}
 			}
 		}
 	}
@@ -425,8 +427,6 @@ void run_child(const command_t *const c, int c_stdin, int c_stdout)
 			perror("execvp");
 			exit(EXIT_FAILURE);
 		}
-
-		exit(EXIT_SUCCESS);
 	}
 	/*** TO BE DONE END ***/
 }
@@ -528,7 +528,7 @@ void execute_line(const line_t *const l)
 			else
 			{
 				fcntl(fds[0], F_SETFD, FD_CLOEXEC);
-				fcntl(fds[1], F_GETFD, FD_CLOEXEC);
+				fcntl(fds[1], F_SETFD, FD_CLOEXEC);
 			}
 			/*** TO BE DONE END ***/
 			curr_stdout = fds[1];

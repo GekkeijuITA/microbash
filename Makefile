@@ -12,6 +12,3 @@ tar: clean
 	cd .. && tar cvJf microbash-students.tar.xz microbash-students
 
 .PHONY: clean tar
-
-
-coccodrillo mamma mia quanto drillo
