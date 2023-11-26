@@ -25,6 +25,11 @@
    - **Scopo:** Utilizzare il comando `echo` per scrivere un messaggio in un file.
    - **Risultato Atteso:** Creazione di "hello.txt" contenente il messaggio "Hello World!".
 
+6. **Utilizzo di `echo` per Scrivere un Messaggio con Variabile d'Ambiente:**
+   - **Linea:** `echo "Hello $USER!"`
+   - **Scopo:** Utilizzare il comando `echo` per scrivere un messaggio su terminale, utilizzando la variabile d'ambiente `$USER`.
+   - **Risultato Atteso:** Messaggio su terminale: "Hello <nome_utente>!".
+
 ### Esempi di Linee Errate:
 
 1. **Errore nel Numero di Argomenti per `cd`:**
